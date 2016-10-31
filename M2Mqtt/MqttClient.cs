@@ -357,6 +357,24 @@ namespace uPLibrary.Networking.M2Mqtt
         /// <param name="brokerHostName">Broker Host Name or IP Address</param>
         /// <param name="brokerPort">Broker port</param>
         /// <param name="secure">Using secure connection</param>
+        /// <param name="sslProtocol">SSL/TLS protocol version</param>
+        /// <param name="userCertificateValidationCallback">A RemoteCertificateValidationCallback delegate responsible for validating the certificate supplied by the remote party</param>
+        /// <param name="userCertificateSelectionCallback">A LocalCertificateSelectionCallback delegate responsible for selecting the certificate used for authentication</param>
+        /// <param name="channel">An IMqttNetworkChannel to use as an alternative to the built-in MQTT channels.</param>
+        public MqttClient(string brokerHostName, int brokerPort, bool secure, MqttSslProtocols sslProtocol,
+            RemoteCertificateValidationCallback userCertificateValidationCallback,
+            LocalCertificateSelectionCallback userCertificateSelectionCallback,
+            IMqttNetworkChannel channel)
+        {
+            this.Init(brokerHostName, brokerPort, secure, null, null, sslProtocol, userCertificateValidationCallback, userCertificateSelectionCallback, channel);
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="brokerHostName">Broker Host Name or IP Address</param>
+        /// <param name="brokerPort">Broker port</param>
+        /// <param name="secure">Using secure connection</param>
         /// <param name="caCert">CA certificate for secure connection</param>
         /// <param name="clientCert">Client certificate</param>
         /// <param name="sslProtocol">SSL/TLS protocol version</param>
@@ -420,7 +438,8 @@ namespace uPLibrary.Networking.M2Mqtt
         /// <param name="userCertificateValidationCallback">A LocalCertificateSelectionCallback delegate responsible for selecting the certificate used for authentication</param>
         private void Init(string brokerHostName, int brokerPort, bool secure, X509Certificate caCert, X509Certificate clientCert, MqttSslProtocols sslProtocol,
             RemoteCertificateValidationCallback userCertificateValidationCallback,
-            LocalCertificateSelectionCallback userCertificateSelectionCallback)
+            LocalCertificateSelectionCallback userCertificateSelectionCallback,
+            IMqttNetworkChannel channel = null)
 #elif (WINDOWS_APP || WINDOWS_PHONE_APP)
         private void Init(string brokerHostName, int brokerPort, bool secure, MqttSslProtocols sslProtocol)
 #else
@@ -463,7 +482,14 @@ namespace uPLibrary.Networking.M2Mqtt
 
             // create network channel
 #if !(MF_FRAMEWORK_VERSION_V4_2 || MF_FRAMEWORK_VERSION_V4_3 || COMPACT_FRAMEWORK || WINDOWS_APP || WINDOWS_PHONE_APP)
-            this.channel = new MqttNetworkChannel(this.brokerHostName, this.brokerPort, secure, caCert, clientCert, sslProtocol, userCertificateValidationCallback, userCertificateSelectionCallback);
+            if (channel != null)
+            {
+                this.channel = channel;
+            }
+            else
+            {
+                this.channel = new MqttNetworkChannel(this.brokerHostName, this.brokerPort, secure, caCert, clientCert, sslProtocol, userCertificateValidationCallback, userCertificateSelectionCallback);
+            }
 #elif (WINDOWS_APP || WINDOWS_PHONE_APP)
             this.channel = new MqttNetworkChannel(this.brokerHostName, this.brokerPort, secure, sslProtocol);
 #else
